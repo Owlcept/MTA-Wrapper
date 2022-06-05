@@ -3,17 +3,10 @@ import aiohttp
 import json
 from datetime import datetime
 #asyncio.Future() runs forever, so loop that somehow
-words = dict()
 
 def commands(func):
     words[func.__name__] = func
     return func
-
-@commands
-async def hello(ctx,num):
-    reply = ctx.messages[num]
-    await ctx.send_message(numbe = num, message = "hello")
-
 
 class Replies:
     def __init__(self, message, number, date, replied = False):
