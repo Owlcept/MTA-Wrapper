@@ -3,15 +3,15 @@ import aiohttp
 import json
 from datetime import datetime
 #asyncio.Future() runs forever, so loop that somehow
+cmd_list = dict()
 
 def commands(func):
-    words[func.__name__] = func
+    cmd_list[func.__name__] = func
     return func
 
 class Replies:
-    def __init__(self, message, number, date, replied = False):
-        self.message = message
-        self.number = number
+    def __init__(self, message, date, replied = False):
+        self.message = message.lower()
         self.date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         self.replied = replied
 
@@ -51,7 +51,10 @@ class Client:
         x = messages['replies']
         for y in x:
             if y['number'] not in self.messages:
-                self.messages[y['number']] = Replies(y['message'],['number'],y['date_received'])
+                self.messages[y['number']] = Replies(y['message'],y['date_received'])
             elif y['number'] in self.messages:
-                self.messages.update({y['number']:Replies(y['message'],y['number'],y['date_received'])})
+                r = self.messages[y['number']]
+                date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
+                if r.date < date:
+                    self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
         return "Success"
