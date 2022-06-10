@@ -5,6 +5,15 @@ from datetime import datetime
 #asyncio.Future() runs forever, so loop that somehow
 cmd_list = dict()
 
+def check(client):
+    for n, m in client.items():
+        if m.replied == True:
+            return
+        else:
+            if m.message in cmd_list:
+                func = cmd_list.get(m.message)
+                return func,n,m
+
 def commands(func):
     cmd_list[func.__name__] = func
     return func
