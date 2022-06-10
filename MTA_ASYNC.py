@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 import json
 from datetime import datetime
-#asyncio.Future() runs forever, so loop that somehow
+#Created by: Owlcept
 cmd_list = dict()
 
 def check(client):
