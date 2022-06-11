@@ -3,9 +3,11 @@ import aiohttp
 import json
 from datetime import datetime
 #Created by: Owlcept
+#Ideas: add prefix?? might keep keywords instead
 cmd_list = dict()
 
 def check(client):
+    #Check for command and if replied
     for n, m in client.items():
         if m.replied == True:
             return
@@ -15,6 +17,7 @@ def check(client):
                 return func,n,m
 
 def commands(func):
+    #Add commands to list
     cmd_list[func.__name__] = func
     return func
 
