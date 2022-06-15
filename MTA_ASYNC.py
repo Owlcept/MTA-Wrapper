@@ -2,9 +2,11 @@ import asyncio
 import aiohttp
 import json
 from datetime import datetime
+from rich.console import Console
 #Created by: Owlcept
 #Ideas: add prefix?? might keep keywords instead
 cmd_list = dict()
+console = Console()
 
 def check(client):
     #Check for command and if replied
