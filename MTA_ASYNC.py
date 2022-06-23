@@ -1,11 +1,11 @@
 import aiohttp
 import json
+import asyncio
 from datetime import datetime
-from rich.console import Console
 #Created by: Owlcept
-#Ideas: add prefix?? might keep keywords instead
+#*Ideas: add prefix?? might keep keywords instead
+#!Add async command check
 cmd_list = dict()
-console = Console()
 
 def check(client):
     #Check for command and if replied
@@ -58,17 +58,21 @@ class Client:
     async def get_replies(self):
         ''' Use this to get replies
             maybe build a listen tool?'''
+        rate_limit = 2
+        while True:
 
-        url = self.url+'export_replies'
-        replies =  await self.session.get(url, headers = self.headers, params = self.params)
-        messages = json.loads(await replies.read())
-        x = messages['replies']
-        for y in x:
-            if y['number'] not in self.messages:
-                self.messages[y['number']] = Replies(y['message'],y['date_received'])
-            elif y['number'] in self.messages:
-                r = self.messages[y['number']]
-                date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
-                if r.date < date:
-                    self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
-        return "Success"
+            url = self.url+'export_replies'
+            replies =  await self.session.get(url, headers = self.headers, params = self.params)
+            messages = json.loads(await replies.read())
+            x = messages['replies']
+            for y in x:
+                if y['number'] not in self.messages:
+                    self.messages[y['number']] = Replies(y['message'],y['date_received'])
+                elif y['number'] in self.messages:
+                    r = self.messages[y['number']]
+                    date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
+                    if r.date < date:
+                        self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
+            print(self.messages)
+            await asyncio.sleep(rate_limit)
+        #return "Success"
