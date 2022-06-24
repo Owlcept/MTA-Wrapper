@@ -40,6 +40,7 @@ class Client:
     def __init__(self,API):
         ''' Build API key and base url for requests '''
         self.messages = {}
+        self.prefix = '!'
         self.rate_limit = 2
         self.params = {'key':API}
         self.session = aiohttp.ClientSession()
@@ -52,12 +53,19 @@ class Client:
     async def check(self):
         while True:
             for m in self.messages.values():
+                #Check for prefix
+                if m.message.startswith(self.prefix):
+                    #Arg[0] = command // *arg other passable vars
+                    cmd = m.message.strip(self.prefix).split()
+                else:
+                    return
+
                 if m.replied == True:
                     return
                 else:
-                    if m.message in cmd_list:
+                    if cmd[0] in cmd_list:
                         m.replied = True
-                        func = cmd_list.get(m.message)
+                        func = cmd_list.get(cmd[0])
                         await func(m)
                     else:
                         continue
