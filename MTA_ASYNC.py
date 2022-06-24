@@ -46,6 +46,17 @@ class Client:
     async def _close(self):
         await self.session.close()
 
+    async def check(self):
+        for n,m in self.messages.items():
+            if m.replied == True:
+                return
+            else:
+                if m.message in cmd_list:
+                    func = cmd_list.get(m.message)
+                    func(n)
+                    m.replied == True
+                else:
+                    continue
 
 
     async def send_message(self, message, number):
