@@ -7,6 +7,7 @@ from datetime import datetime
 #!Add async command check
 cmd_list = dict()
 
+'''
 def check(client):
     #Check for command and if replied
     for n, m in client.items():
@@ -16,6 +17,7 @@ def check(client):
             if m.message in cmd_list:
                 func = cmd_list.get(m.message)
                 return func,n,m
+'''
 
 def commands(func):
     #Add commands to list
@@ -25,7 +27,7 @@ def commands(func):
 class Replies:
     def __init__(self, message, date, replied = False):
         self.message = message.lower()
-        self.date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        self.date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
         self.replied = replied
 
     def __repr__(self):
@@ -38,6 +40,7 @@ class Client:
     def __init__(self,API):
         ''' Build API key and base url for requests '''
         self.messages = {}
+        self.rate_limit = 2
         self.params = {'key':API}
         self.session = aiohttp.ClientSession()
         self.url = "https://mobile-text-alerts.com/rest/?request="
@@ -47,16 +50,18 @@ class Client:
         await self.session.close()
 
     async def check(self):
-        for n,m in self.messages.items():
-            if m.replied == True:
-                return
-            else:
-                if m.message in cmd_list:
-                    func = cmd_list.get(m.message)
-                    func(n)
-                    m.replied == True
+        while True:
+            for m in self.messages.values():
+                if m.replied == True:
+                    return
                 else:
-                    continue
+                    if m.message in cmd_list:
+                        m.replied = True
+                        func = cmd_list.get(m.message)
+                        await func(m)
+                    else:
+                        continue
+            await asyncio.sleep(self.rate_limit)
 
 
     async def send_message(self, message, number):
@@ -69,7 +74,6 @@ class Client:
     async def get_replies(self):
         ''' Use this to get replies
             maybe build a listen tool?'''
-        rate_limit = 2
         while True:
 
             url = self.url+'export_replies'
@@ -83,7 +87,8 @@ class Client:
                     r = self.messages[y['number']]
                     date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
                     if r.date < date:
+                        print('here')
                         self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
             print(self.messages)
-            await asyncio.sleep(rate_limit)
+            await asyncio.sleep(self.rate_limit)
         #return "Success"
