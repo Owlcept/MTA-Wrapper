@@ -55,8 +55,8 @@ class Client:
             for m in self.messages.values():
                 #Check for prefix
                 if m.message.startswith(self.prefix):
-                    #Arg[0] = command // *arg other passable vars
-                    cmd = m.message.strip(self.prefix).split()
+                    #Arg[0] = command // Arg[1] all other vars to be parsed
+                    cmd = m.message.strip(self.prefix).split(' ',1)
                 else:
                     return
 
@@ -66,7 +66,10 @@ class Client:
                     if cmd[0] in cmd_list:
                         m.replied = True
                         func = cmd_list.get(cmd[0])
-                        await func(m)
+                        try:
+                            await func(cmd[1])
+                        except:
+                            await func()
                     else:
                         continue
             await asyncio.sleep(self.rate_limit)
