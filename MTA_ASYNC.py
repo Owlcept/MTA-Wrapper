@@ -47,6 +47,7 @@ class Client:
             print('Program shutting down')
         finally:
             loop.run_until_complete(self._close())
+            loop.close()
 
     async def check(self):
         while True:
