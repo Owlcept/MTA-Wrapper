@@ -7,18 +7,6 @@ from datetime import datetime
 #!Add async command check
 cmd_list = dict()
 
-'''
-def check(client):
-    #Check for command and if replied
-    for n, m in client.items():
-        if m.replied == True:
-            return
-        else:
-            if m.message in cmd_list:
-                func = cmd_list.get(m.message)
-                return func,n,m
-'''
-
 def commands(func):
     #Add commands to list
     cmd_list[func.__name__] = func
