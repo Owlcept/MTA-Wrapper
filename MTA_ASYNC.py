@@ -25,11 +25,11 @@ class Replies:
 class Client:
 
 
-    def __init__(self,API):
+    def __init__(self,API, prefix = '!'):
         ''' Build API key and base url for requests '''
         self.messages = {}
         self.loop = asyncio.get_event_loop()
-        self.prefix = '!'
+        self.prefix = prefix
         self.rate_limit = 2
         self.params = {'key':API}
         self.session = aiohttp.ClientSession()
