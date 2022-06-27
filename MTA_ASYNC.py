@@ -28,6 +28,7 @@ class Client:
     def __init__(self,API):
         ''' Build API key and base url for requests '''
         self.messages = {}
+        self.loop = asyncio.get_event_loop()
         self.prefix = '!'
         self.rate_limit = 2
         self.params = {'key':API}
@@ -37,6 +38,15 @@ class Client:
 
     async def _close(self):
         await self.session.close()
+    
+    def run(self):
+        loop = self.loop
+        try:
+            loop.run_until_complete(asyncio.gather(self.get_replies(),self.check()))
+        except KeyboardInterrupt:
+            print('Program shutting down')
+        finally:
+            loop.run_until_complete(self._close())
 
     async def check(self):
         while True:
