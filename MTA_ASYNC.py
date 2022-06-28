@@ -13,8 +13,10 @@ def commands(func):
     return func
 
 class Replies:
-    def __init__(self, message, date, replied = False):
+    def __init__(self, message, name, number, date, replied = False):
         self.message = message.lower()
+        self.name = name
+        self.number = number
         self.date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
         self.replied = replied
 
@@ -44,7 +46,7 @@ class Client:
         try:
             loop.run_until_complete(asyncio.gather(self.get_replies(),self.check()))
         except KeyboardInterrupt:
-            print('Program shutting down')
+            print('\nProgram shutting down')
         finally:
             loop.run_until_complete(self._close())
             loop.close()
@@ -55,7 +57,8 @@ class Client:
                 #Check for prefix
                 if m.message.startswith(self.prefix):
                     #Arg[0] = command // Arg[1] all other vars to be parsed
-                    cmd = m.message.strip(self.prefix).split(' ',1)
+                    # Eliminate all white space for vars
+                    cmd = m.message.strip(self.prefix).split(None,1)
                 else:
                     return
 
@@ -66,9 +69,9 @@ class Client:
                         m.replied = True
                         func = cmd_list.get(cmd[0])
                         try:
-                            await func(cmd[1])
+                            await func(m,cmd[1])
                         except:
-                            await func()
+                            await func(m)
                     else:
                         continue
             await asyncio.sleep(self.rate_limit)
@@ -92,7 +95,7 @@ class Client:
             x = messages['replies']
             for y in x:
                 if y['number'] not in self.messages:
-                    self.messages[y['number']] = Replies(y['message'],y['date_received'])
+                    self.messages[y['number']] = Replies(y['message'],y['firstName'],y['number'],y['date_received'])
                 elif y['number'] in self.messages:
                     r = self.messages[y['number']]
                     date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
