@@ -2,9 +2,10 @@ import aiohttp
 import json
 import asyncio
 from datetime import datetime
+
+
 #Created by: Owlcept
-#*Ideas: add prefix?? might keep keywords instead
-#!Add async command check
+
 cmd_list = dict()
 
 def commands(func):
