@@ -13,7 +13,7 @@ def commands(func):
     return func
 
 class Replies:
-    def __init__(self, message, name, number, date, replied = False):
+    def __init__(self, message: str, name: str, number: str, date: str, replied: bool = False):
         self.message = message.lower()
         self.name = name
         self.number = number
@@ -27,7 +27,7 @@ class Replies:
 class Client:
 
 
-    def __init__(self,API, prefix = '!'):
+    def __init__(self,API: str, prefix: str = '!'):
         ''' Build API key and base url for requests '''
         self.messages = {}
         self.loop = asyncio.get_event_loop()
