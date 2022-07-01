@@ -2,6 +2,7 @@ import aiohttp
 import json
 import asyncio
 from datetime import datetime
+from typing import Callable, Coroutine
 
 
 #Created by: Owlcept
