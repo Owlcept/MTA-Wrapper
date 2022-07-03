@@ -18,6 +18,7 @@ class Replies:
     def __init__(self, message: str, name: str, number: str, date: str, replied: bool = False):
         self.message = message.lower()
         self.name = name
+        self.number = number
         self.date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
         self.replied = replied
 
@@ -101,7 +102,6 @@ class Client:
                     r = self.messages[y['number']]
                     date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
                     if r.date < date:
-                        print('here')
                         self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
             print(self.messages)
             await asyncio.sleep(self.rate_limit)
