@@ -102,6 +102,6 @@ class Client:
                     r = self.messages[y['number']]
                     date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
                     if r.date < date:
-                        self.messages.update({y['number']:Replies(y['message'],y['date_received'])})
+                        self.messages.update({y['number']:Replies(y['message'],y['firstName'],y['number'],y['date_received'])})
             print(self.messages)
             await asyncio.sleep(self.rate_limit)
