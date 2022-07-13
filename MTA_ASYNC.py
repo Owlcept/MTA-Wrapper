@@ -2,7 +2,7 @@ import aiohttp
 import json
 import asyncio
 from datetime import datetime
-from typing import Callable, Coroutine
+from typing import Coroutine
 
 
 #Created by: Owlcept
@@ -53,7 +53,7 @@ class Client:
             loop.run_until_complete(self._close())
             loop.close()
 
-    async def check(self):
+    async def check(self) -> Coroutine:
         while True:
             for m in self.messages.values():
                 #Check for prefix
