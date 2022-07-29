@@ -62,10 +62,10 @@ class Client:
                     # Eliminate all white space for vars
                     cmd = m.message.strip(self.prefix).split(None,1)
                 else:
-                    return
+                    continue
 
                 if m.replied == True:
-                    return
+                    continue
                 else:
                     if cmd[0] in cmd_list:
                         m.replied = True
@@ -103,5 +103,5 @@ class Client:
                     date = datetime.strptime(y['date_received'], "%Y-%m-%d %H:%M:%S")
                     if r.date < date:
                         self.messages.update({y['number']:Replies(y['message'],y['firstName'],y['number'],y['date_received'])})
-            print(self.messages)
+            #print(self.messages)
             await asyncio.sleep(self.rate_limit)
