@@ -9,14 +9,26 @@ from typing import Coroutine
 
 class Replies:
     def __init__(self, message: str, name: str, id: int, date: str, replied: bool):
-        self.message = message
+        self._message = message
         self.name = name
-        self.id = id
+        self._id = id
         self.date = datetime.fromisoformat(date.replace('Z',''))
-        self.replied = replied
+        self._replied = replied
 
     def __repr__(self):
         return f"ID: {self.id} | Message: {self.message} | Date: {self.date}"
+
+    @property
+    def reply(self):
+        return self._replied
+    
+    @property
+    def id(self):
+        return self._id
+    
+    @property
+    def message(self):
+        return self._message
         
 
 class Client:
@@ -49,14 +61,27 @@ class Client:
         await self.session.close()
     
     def run(self) -> None:
-        loop = self.loop
+        self.loop.create_task(self.get_replies())
+        self.loop.create_task(self.check())
         try:
-            loop.run_until_complete(asyncio.gather(self.get_replies(),self.check()))
+            self.loop.run_forever()
         except KeyboardInterrupt:
             print('\nProgram shutting down')
+
+            pass
         finally:
-            loop.run_until_complete(self._close())
-            loop.close()
+            self.loop.run_until_complete(self._close())
+            self.loop.stop()
+            for task in asyncio.all_tasks(loop=self.loop):
+                try:
+                    task.cancel()
+                    self.loop.run_until_complete(task)
+                    
+                except asyncio.CancelledError:
+                    pass
+                
+                
+            self.loop.close()
 
     async def check(self) -> Coroutine:
         while True:
@@ -93,14 +118,15 @@ class Client:
         while True:
 
             url = "https://api.mobile-text-alerts.com/v3/threads"
-            r =  await self.session.get(url, headers = self.headers, params = self.params)
-            r = await r.json()['data']['rows']
+            r = await self.session.get(url, headers = self.headers)
+            r = await r.json()
+            r = r['data']['rows']
             for x in r:
                 if x['id'] not in self.messages:
                     self.messages[x['id']] = Replies(x['latestMessage']['message'],x['name'],x['id'],
                     x['latestMessage']['timestamp'],x['unread'])
 
-            
+            print(self.messages)
             await asyncio.sleep(self.rate_limit)
 
     async def mark_read(self, msg) -> Coroutine:
