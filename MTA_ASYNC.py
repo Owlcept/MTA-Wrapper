@@ -7,34 +7,38 @@ from typing import Coroutine
 
 #Created by: Owlcept
 
-class Replies:
+class Message:
     def __init__(self, message: str, name: str, id: int, date: str, replied: bool):
         self._message = message
-        self.name = name
+        self._name = name
         self._id = id
-        self.date = datetime.fromisoformat(date.replace('Z',''))
+        self._date = datetime.fromisoformat(date.replace('Z',''))
         self._replied = replied
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"ID: {self.id} | Message: {self.message} | Date: {self.date}"
 
     @property
-    def reply(self):
+    def reply(self) -> bool:
         return self._replied
     
     @property
-    def id(self):
+    def id(self) -> str:
         return self._id
     
     @property
-    def message(self):
+    def message(self) -> str:
         return self._message
+    
+    @property
+    def name(self) -> str:
+        return self._name
         
 
 class Client:
 
 
-    def __init__(self,API: str, prefix: str = '!'):
+    def __init__(self, API: str, prefix: str = '!'):
         ''' 
         Build API key and base url for requests
         Params:
@@ -42,7 +46,8 @@ class Client:
             prefix: Prefix for commands in string
         
          '''
-        self.messages = {} #Use dict to make updating easier cause lists suck
+        #Use {'id': cls Message} for storage
+        self.messages = {}
         self.cmd_list = {}
         self.loop = asyncio.get_event_loop()
         self.prefix = prefix
@@ -52,9 +57,12 @@ class Client:
         self.headers = {'Accept':'application/json', 'Authorization':f'Bearer {API}'}
 
 
-    def commands(self,func):
+    def commands(self,func) -> function:
         #Add commands to list
-        self.cmd_list[func.__name__] = func
+        if func.__name__ not in self.cmd_list:
+            self.cmd_list[func.__name__] = func
+        else:
+            raise Exception('Command already exist')
         return func
 
     async def _close(self) -> None:
@@ -87,7 +95,7 @@ class Client:
         while True:
             for m in self.messages.values():
                 #Check for prefix
-                if m.message.startswith(self.prefix) and m.replied != True:
+                if m.message.startswith(self.prefix) and m.reply != True:
                     #Arg[0] = command // Arg[1] all other vars to be parsed
                     # Eliminate all white space for vars
                     cmd = m.message.strip(self.prefix).split(None,1)
@@ -105,7 +113,7 @@ class Client:
             await asyncio.sleep(self.rate_limit)
 
 
-    async def send_message(self, message, subs) -> Coroutine:
+    async def send_message(self, message:str, subs:str) -> Coroutine:
         '''Use this to send messages to specific number'''
         url = "https://api.mobile-text-alerts.com/v3/send"
         payload = {"subscribers": subs, "message": message}
@@ -123,7 +131,7 @@ class Client:
             r = r['data']['rows']
             for x in r:
                 if x['id'] not in self.messages:
-                    self.messages[x['id']] = Replies(x['latestMessage']['message'],x['name'],x['id'],
+                    self.messages[x['id']] = Message(x['latestMessage']['message'],x['name'],x['id'],
                     x['latestMessage']['timestamp'],x['unread'])
 
             print(self.messages)
@@ -133,7 +141,7 @@ class Client:
         ''' Use this to mark messages as read'''
         r = await self.session.patch(f"https://api.mobile-text-alerts.com/v3/threads/{msg.id}/read", headers= self.headers)
         if r.status == 200:
-            msg.replied = True
+            msg._replied = True
             print(f"Marked {msg.id} as read")
         else:
             print(f"Failed to mark {msg.id} as read")
