@@ -51,11 +51,10 @@ class Client:
         self.cmd_list = {}
         self.loop = asyncio.get_event_loop()
         self.prefix = prefix
-        self.rate_limit = 2
+        self._rate_limit = 2
         self.session = aiohttp.ClientSession()
         self.url = "https://api.mobile-text-alerts.com/v3/"
         self.headers = {'Accept':'application/json', 'Authorization':f'Bearer {API}'}
-
 
     def commands(self,func) -> function:
         #Add commands to list
@@ -110,7 +109,7 @@ class Client:
                         print('Command not found')
                 else:
                     continue
-            await asyncio.sleep(self.rate_limit)
+            await asyncio.sleep(self._rate_limit)
 
 
     async def send_message(self, message:str, subs:str) -> Coroutine:
@@ -135,9 +134,9 @@ class Client:
                     x['latestMessage']['timestamp'],x['unread'])
 
             print(self.messages)
-            await asyncio.sleep(self.rate_limit)
+            await asyncio.sleep(self._rate_limit)
 
-    async def mark_read(self, msg) -> Coroutine:
+    async def mark_read(self, msg: Message) -> Coroutine:
         ''' Use this to mark messages as read'''
         r = await self.session.patch(f"https://api.mobile-text-alerts.com/v3/threads/{msg.id}/read", headers= self.headers)
         if r.status == 200:
