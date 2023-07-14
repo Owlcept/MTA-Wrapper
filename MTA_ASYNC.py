@@ -1,13 +1,14 @@
 import aiohttp
 import asyncio
 from datetime import datetime
-from typing import Coroutine
+from typing import Coroutine, Callable
 
 
 
 #Created by: Owlcept
 
 class Message:
+
     def __init__(self, message: str, name: str, id: int, date: str, replied: bool):
         self._message = message
         self._name = name
@@ -16,15 +17,19 @@ class Message:
         self._replied = replied
 
     def __repr__(self) -> str:
-        return f"ID: {self.id} | Message: {self.message} | Date: {self.date}"
+        return f"Message: {self.message} | Date: {self.date}"
 
     @property
-    def reply(self) -> bool:
+    def unread(self) -> bool:
         return self._replied
     
     @property
     def id(self) -> str:
         return self._id
+    
+    @property
+    def date(self) -> datetime:
+        return self._date
     
     @property
     def message(self) -> str:
@@ -38,7 +43,7 @@ class Message:
 class Client:
 
 
-    def __init__(self, API: str, prefix: str = '!'):
+    def __init__(self, api: str, prefix: str = '!'):
         ''' 
         Build API key and base url for requests
         Params:
@@ -51,12 +56,12 @@ class Client:
         self.cmd_list = {}
         self.loop = asyncio.get_event_loop()
         self.prefix = prefix
-        self._rate_limit = 2
+        self._rate_limit = 60/30
         self.session = aiohttp.ClientSession()
         self.url = "https://api.mobile-text-alerts.com/v3/"
-        self.headers = {'Accept':'application/json', 'Authorization':f'Bearer {API}'}
+        self.headers = {'Accept':'application/json', 'Authorization':f'Bearer {api}'}
 
-    def commands(self,func) -> function:
+    def commands(self,func) -> Callable:
         #Add commands to list
         if func.__name__ not in self.cmd_list:
             self.cmd_list[func.__name__] = func
@@ -90,14 +95,15 @@ class Client:
                 
             self.loop.close()
 
-    async def check(self) -> Coroutine:
+    async def check(self) -> None:
         while True:
             for m in self.messages.values():
                 #Check for prefix
-                if m.message.startswith(self.prefix) and m.reply != True:
+                if m.message.startswith(self.prefix) and m.unread == True:
                     #Arg[0] = command // Arg[1] all other vars to be parsed
                     # Eliminate all white space for vars
                     cmd = m.message.strip(self.prefix).split(None,1)
+
                     if cmd[0] in self.cmd_list:
                         #input the read function here
                         func = self.cmd_list.get(cmd[0])
@@ -112,14 +118,14 @@ class Client:
             await asyncio.sleep(self._rate_limit)
 
 
-    async def send_message(self, message:str, subs:str) -> Coroutine:
+    async def send_messageID(self, message:str, subs:int) -> None:
         '''Use this to send messages to specific number'''
         url = "https://api.mobile-text-alerts.com/v3/send"
-        payload = {"subscribers": subs, "message": message}
+        payload = {'message': 'hello there', 'threadId': 85735632}
         x = await self.session.post(url,headers = self.headers, data=payload)
-        print(x.response)
+        print(x.text)
 
-    async def get_replies(self) -> Coroutine:
+    async def get_replies(self) -> None:
         ''' Use this to get replies
             maybe build a listen tool?'''
         while True:
@@ -133,10 +139,10 @@ class Client:
                     self.messages[x['id']] = Message(x['latestMessage']['message'],x['name'],x['id'],
                     x['latestMessage']['timestamp'],x['unread'])
 
-            print(self.messages)
+            #print(self.messages)
             await asyncio.sleep(self._rate_limit)
 
-    async def mark_read(self, msg: Message) -> Coroutine:
+    async def mark_read(self, msg: Message) -> None:
         ''' Use this to mark messages as read'''
         r = await self.session.patch(f"https://api.mobile-text-alerts.com/v3/threads/{msg.id}/read", headers= self.headers)
         if r.status == 200:
